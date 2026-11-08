@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZzidulyaDLC — Официальный портал клиента</title>
+  <link rel="icon" type="image/jpeg" href="img/logo.jpg">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand">
+        <img src="img/logo.jpg" alt="Zzidulya Logo" class="brand-logo">
+        <span class="brand-title">ZZIDULYA<span style="color: var(--neon-pink)">DLC</span></span>
+        <span class="brand-badge">v2.0 FIXED</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Функции</a></li>
+        <li><a href="#pricing" class="nav-link">Тарифы</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="btn-open-auth" class="btn btn-outline btn-sm">Войти / Регистрация</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span class="hero-pill-dot"></span>
+        ОБНОВЛЕНИЕ 2026: ОБХОДЫ АКТИВНЫ
+      </div>
+      <h1 class="hero-title">
+        ПЕРЕДОВОЙ СОФТ<br>
+        <span>НОВОГО ПОКОЛЕНИЯ</span>
+      </h1>
+      <p class="hero-subtitle">
+        Абсолютное доминирование в PvP и анархии. Специальная версия Nursultan Client с кастомными модулями TargetPearl, TargetESP, AutoTotem и полным обходом проверок.
+      </p>
+
+      <div class="hero-actions">
+        <button id="btn-hero-download" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Скачать клиент
+        </button>
+        <button id="btn-hero-cabinet" class="btn btn-outline btn-lg">Личный кабинет</button>
+      </div>
+
+      <!-- Live Counters -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total-users">1,480+</div>
+          <div class="stat-label">Пользователей</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total-downloads">3,240+</div>
+          <div class="stat-label">Скачиваний</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color: var(--neon-green)">100%</div>
+          <div class="stat-label">Обход проверок</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color: var(--neon-purple)">12 ms</div>
+          <div class="stat-label">Отклик модулей</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Возможности</div>
+        <h2 class="section-title">Почему выбирают ZzidulyaDLC</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Bypass Matrix & FunTime</h3>
+          <p class="feature-desc">Невидимость для античитов. Продвинутые тайминги ударов, адаптивный Velocity и ротации без детектов на популярных серверах.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">TargetPearl & TargetESP</h3>
+          <p class="feature-desc">Эксклюзивный предикт полета перла с траекторией прямо в цель. Подсветка игроков через стены с отображением брони и тотемов.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3 class="feature-title">AutoTotem & CrystalAura</h3>
+          <p class="feature-desc">Молниеносный свап тотемов из хотбара и инвентаря даже во время оглушения. Автоматический подрыв кристаллов с максимальным DPS.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3 class="feature-title">Кастомный Киберпанк HUD</h3>
+          <p class="feature-desc">Минималистичный интерфейс, плавная анимация в стиле nursultan.fun, индикаторы перезарядки и настраиваемые цветовые темы.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">☁️</div>
+          <h3 class="feature-title">Cloud Configs</h3>
+          <p class="feature-desc">Мгновенная загрузка конфигов от топ игроков и ютуберов прямо из облака в 1 клик. Ваши настройки всегда синхронизированы.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3 class="feature-title">Private Protection</h3>
+          <p class="feature-desc">Уникальная система лицензионных ключей и привязка аккаунтов. Защита от сливов и автоматические обновления клиента.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Тарифы</div>
+        <h2 class="section-title">Ключи доступа</h2>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-duration">Тест</div>
+          <div class="price-val">99 ₽</div>
+          <ul class="price-features">
+            <li>Срок: 1 день</li>
+            <li>Все модули и обходы</li>
+            <li>Доступ к скачиванию</li>
+            <li>Поддержка в Telegram</li>
+          </ul>
+          <a href="https://t.me/zzidulyadlc" target="_blank" class="btn btn-outline btn-sm" style="width: 100%">Купить ключ</a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-duration">Неделя</div>
+          <div class="price-val">249 ₽</div>
+          <ul class="price-features">
+            <li>Срок: 7 дней</li>
+            <li>Все модули и обходы</li>
+            <li>Облачные конфиги</li>
+            <li>Быстрые обновления</li>
+          </ul>
+          <a href="https://t.me/zzidulyadlc" target="_blank" class="btn btn-outline btn-sm" style="width: 100%">Купить ключ</a>
+        </div>
+
+        <div class="price-card popular">
+          <div class="popular-badge">ХИТ ПРОДАЖ</div>
+          <div class="price-duration">Месяц</div>
+          <div class="price-val">499 ₽</div>
+          <ul class="price-features">
+            <li>Срок: 30 дней</li>
+            <li>Максимальный приоритет</li>
+            <li>Приватные конфиги</li>
+            <li>Полный саппорт 24/7</li>
+          </ul>
+          <a href="https://t.me/zzidulyadlc" target="_blank" class="btn btn-accent btn-sm" style="width: 100%">Купить ключ</a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-duration">Навсегда</div>
+          <div class="price-val">990 ₽</div>
+          <ul class="price-features">
+            <li>Срок: Навсегда (Lifetime)</li>
+            <li>Все будущие DLC</li>
+            <li>Роль в Discord / Telegram</li>
+            <li>Прямой контакт с автором</li>
+          </ul>
+          <a href="https://t.me/zzidulyadlc" target="_blank" class="btn btn-outline btn-sm" style="width: 100%">Купить ключ</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Вопросы и ответы</div>
+        <h2 class="section-title">Часто задаваемые вопросы</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Как начать играть с ZzidulyaDLC?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            1. Зарегистрируйтесь на сайте.<br>
+            2. Приобретите или получите ключ доступа.<br>
+            3. Активируйте ключ в личном кабинете.<br>
+            4. Нажмите «Скачать клиент» и запустите `start.bat` из архива.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Какая версия Java требуется?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Клиент поставляется в комплекте со встроенной автономной Java (JRE). Вам не нужно ничего дополнительно устанавливать — всё настроено и запускается в один клик.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>Банят ли за клиент на серверах?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Клиент оптимизирован для максимальной скрытности. Все ротации и дистанции соответствуют легитным лимитам при правильной настройке конфига.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-socials">
+        <a href="https://t.me/zzidulyadlc" target="_blank" class="social-link" title="Telegram">✈ Telegram</a>
+        <a href="https://discord.gg/" target="_blank" class="social-link" title="Discord">💬 Discord</a>
+      </div>
+      <p class="footer-copy">
+        © 2026 ZzidulyaDLC. Все права защищены. Разработано для настоящих победителей.
+        <span id="admin-secret-trigger" class="admin-lock-btn" title="Панель управления">🔒</span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- MODAL: Auth (Login / Register) -->
+  <div id="modal-auth" class="modal-overlay">
+    <div class="modal-card">
+      <button class="modal-close">&times;</button>
+      <div class="tabs">
+        <button id="tab-btn-login" class="tab-btn active">Вход</button>
+        <button id="tab-btn-register" class="tab-btn">Регистрация</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="form-login">
+        <div class="form-group">
+          <label class="form-label">Имя пользователя (Логин)</label>
+          <input type="text" id="login-username" class="form-input" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Пароль</label>
+          <input type="password" id="login-password" class="form-input" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Войти в аккаунт</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="form-register" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Придумайте логин (3-32 символа)</label>
+          <input type="text" id="reg-username" class="form-input" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Придумайте пароль (от 4 символов)</label>
+          <input type="password" id="reg-password" class="form-input" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 10px;">Зарегистрироваться</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: User Cabinet -->
+  <div id="modal-cabinet" class="modal-overlay">
+    <div class="modal-card">
+      <button class="modal-close">&times;</button>
+      <h3 class="modal-title">Личный кабинет</h3>
+
+      <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="color: var(--text-muted)">Аккаунт:</span>
+          <strong id="cab-username" style="font-size: 16px; color: var(--neon-cyan)">—</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="color: var(--text-muted)">Подписка:</span>
+          <span id="cab-sub-status" class="badge badge-purple">—</span>
+        </div>
+        <div style="text-align: right; font-size: 12px; color: var(--text-muted);" id="cab-sub-expiry">—</div>
+      </div>
+
+      <!-- Key Activation Form -->
+      <form id="form-redeem-key" style="margin-bottom: 24px;">
+        <label class="form-label">Активировать ключ доступа</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="redeem-key-input" class="form-input" placeholder="ZZD-XXXX-XXXX-XXXX" style="font-family: monospace;">
+          <button type="submit" class="btn btn-primary btn-sm">Активировать</button>
+        </div>
+      </form>
+
+      <!-- Download Button -->
+      <button id="btn-cab-download" class="btn btn-primary" style="width: 100%; margin-bottom: 12px;">
+        ⬇ Скачать сборку клиента
+      </button>
+
+      <button id="btn-cab-logout" class="btn btn-outline btn-sm" style="width: 100%; border-color: rgba(255,51,102,0.4); color: var(--neon-red)">
+        Выйти из аккаунта
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Admin Panel -->
+  <div id="modal-admin" class="modal-overlay">
+    <div class="modal-card modal-lg">
+      <button class="modal-close">&times;</button>
+
+      <!-- Admin Login Gate -->
+      <div id="admin-auth-card">
+        <h3 class="modal-title">Панель администратора</h3>
+        <p style="text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">
+          Доступ защищён мастер-паролем владельца
+        </p>
+        <form id="form-admin-login" style="max-width: 340px; margin: 0 auto;">
+          <div class="form-group">
+            <label class="form-label">Пароль администратора</label>
+            <input type="password" id="admin-password-input" class="form-input" required placeholder="Введите пароль">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">Войти в панель</button>
+        </form>
+      </div>
+
+      <!-- Admin Dashboard -->
+      <div id="admin-dashboard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 class="modal-title" style="margin: 0; text-align: left;">Управление ZzidulyaDLC</h3>
+          <span class="badge badge-green">Администратор</span>
+        </div>
+
+        <!-- Admin Top Stats -->
+        <div class="stats-bar" style="margin-bottom: 24px;">
+          <div class="stat-card" style="padding: 10px;">
+            <div class="stat-num" id="adm-stat-users" style="font-size: 20px;">0</div>
+            <div class="stat-label">Юзеров</div>
+          </div>
+          <div class="stat-card" style="padding: 10px;">
+            <div class="stat-num" id="adm-stat-active-subs" style="font-size: 20px; color: var(--neon-green)">0</div>
+            <div class="stat-label">Подписок</div>
+          </div>
+          <div class="stat-card" style="padding: 10px;">
+            <div class="stat-num" id="adm-stat-banned" style="font-size: 20px; color: var(--neon-red)">0</div>
+            <div class="stat-label">Банов</div>
+          </div>
+          <div class="stat-card" style="padding: 10px;">
+            <div class="stat-num" id="adm-stat-keys" style="font-size: 20px;">0</div>
+            <div class="stat-label">Свободно ключей</div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+          <button class="tab-btn admin-tab-btn active" data-target="tab-admin-users">Пользователи</button>
+          <button class="tab-btn admin-tab-btn" data-target="tab-admin-keys">Генератор ключей</button>
+          <button class="tab-btn admin-tab-btn" data-target="tab-admin-archive">Архив клиента</button>
+          <button class="tab-btn admin-tab-btn" data-target="tab-admin-security">Безопасность</button>
+        </div>
+
+        <!-- Tab: Users -->
+        <div id="tab-admin-users" class="admin-tab-content">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+            <input type="text" id="admin-user-search" class="form-input" placeholder="Поиск пользователя по логину..." style="max-width: 300px;">
+          </div>
+          <div style="max-height: 280px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Логин</th>
+                  <th>Статус</th>
+                  <th>Подписка</th>
+                  <th>Скачиваний</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Keys -->
+        <div id="tab-admin-keys" class="admin-tab-content" style="display: none;">
+          <form id="form-generate-keys" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 14px; border-radius: var(--radius-sm);">
+            <div>
+              <label class="form-label">Количество</label>
+              <select id="gen-key-count" class="form-input" style="width: 100px;">
+                <option value="1">1 шт.</option>
+                <option value="5">5 шт.</option>
+                <option value="10">10 шт.</option>
+                <option value="25">25 шт.</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Длительность</label>
+              <select id="gen-key-days" class="form-input" style="width: 140px;">
+                <option value="1">1 день</option>
+                <option value="7">7 дней</option>
+                <option value="30" selected>30 дней</option>
+                <option value="90">90 дней</option>
+                <option value="-1">Навсегда</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="height: 42px;">⚡ Создать ключи</button>
+          </form>
+
+          <!-- Generated Keys Output Box -->
+          <textarea id="gen-keys-output" class="form-input" rows="3" style="display: none; margin-bottom: 16px; font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.5);" readonly></textarea>
+
+          <div style="max-height: 220px; overflow-y: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Ключ</th>
+                  <th>Срок</th>
+                  <th>Статус</th>
+                  <th>Дата активации</th>
+                  <th>Действие</th>
+                </tr>
+              </thead>
+              <tbody id="admin-keys-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Archive -->
+        <div id="tab-admin-archive" class="admin-tab-content" style="display: none;">
+          <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--radius-sm); margin-bottom: 16px;">
+            <p style="margin-bottom: 8px;"><strong>Источник файлов:</strong> <code>D:\ZzidulyaDLC\NursultanClient-fixed</code></p>
+            <p style="margin-bottom: 8px;"><strong>Размер текущего ZIP-архива:</strong> <span id="adm-archive-size" style="color: var(--neon-cyan)">—</span></p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              При нажатии сервер упаковывает обновленные файлы клиента в фоновом режиме.
+            </p>
+            <button id="btn-rebuild-archive" class="btn btn-outline btn-sm">Пересобрать ZIP-архив</button>
+          </div>
+        </div>
+
+        <!-- Tab: Security -->
+        <div id="tab-admin-security" class="admin-tab-content" style="display: none;">
+          <form id="form-change-admin-pwd" style="max-width: 360px;">
+            <div class="form-group">
+              <label class="form-label">Текущий пароль</label>
+              <input type="password" id="adm-curr-pwd" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Новый пароль (минимум 6 символов)</label>
+              <input type="password" id="adm-new-pwd" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Сменить пароль</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

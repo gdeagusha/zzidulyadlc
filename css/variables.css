@@ -1,0 +1,77 @@
+/**
+ * ZzidulyaDLC - Cyberpunk / Glassmorphism Design Tokens
+ * Inspired by modern gaming portals (nursultan.fun)
+ */
+:root {
+  /* Color Palette - Dark Gaming Core */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #0f0f18;
+  --bg-card: rgba(18, 18, 28, 0.72);
+  --bg-card-hover: rgba(26, 26, 42, 0.85);
+  --bg-card-solid: #131320;
+  --bg-input: rgba(10, 10, 18, 0.75);
+  --bg-modal-overlay: rgba(5, 5, 10, 0.85);
+
+  /* Neon Accents */
+  --neon-cyan: #00f2fe;
+  --neon-blue: #4facfe;
+  --neon-purple: #b026ff;
+  --neon-violet: #8a2be2;
+  --neon-pink: #f72585;
+  --neon-magenta: #ff007f;
+  --neon-green: #00f59b;
+  --neon-amber: #ffb703;
+  --neon-red: #ff3366;
+
+  /* Gradients */
+  --grad-primary: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #b026ff 100%);
+  --grad-accent: linear-gradient(135deg, #b026ff 0%, #f72585 100%);
+  --grad-cyber: linear-gradient(90deg, #00f2fe 0%, #b026ff 50%, #f72585 100%);
+  --grad-card-border: linear-gradient(135deg, rgba(0, 242, 254, 0.35), rgba(176, 38, 255, 0.2), rgba(247, 37, 133, 0.35));
+  --grad-glow: radial-gradient(circle at 50% 50%, rgba(176, 38, 255, 0.18) 0%, transparent 70%);
+  --grad-dark-overlay: linear-gradient(180deg, rgba(10, 10, 15, 0.3) 0%, rgba(10, 10, 15, 0.95) 100%);
+
+  /* Borders & Glassmorphism */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.15);
+  --border-glow-cyan: rgba(0, 242, 254, 0.45);
+  --border-glow-purple: rgba(176, 38, 255, 0.45);
+  --border-glow-pink: rgba(247, 37, 133, 0.45);
+  --glass-blur: blur(18px);
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Box Shadows & Glows */
+  --glow-cyan: 0 0 25px rgba(0, 242, 254, 0.35);
+  --glow-purple: 0 0 30px rgba(176, 38, 255, 0.35);
+  --glow-pink: 0 0 30px rgba(247, 37, 133, 0.35);
+  --glow-green: 0 0 25px rgba(0, 245, 155, 0.35);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(176, 38, 255, 0.2);
+
+  /* Typography */
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Rajdhani', 'Orbitron', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Text Colors */
+  --text-main: #f0f2f8;
+  --text-muted: #8c90a4;
+  --text-dim: #5a5e74;
+  --text-cyan: #00f2fe;
+  --text-purple: #c761ff;
+  --text-pink: #ff4d94;
+
+  /* Transitions */
+  --trans-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-base: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --container-max: 1240px;
+  --header-height: 80px;
+}

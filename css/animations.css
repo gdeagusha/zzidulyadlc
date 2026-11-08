@@ -1,0 +1,140 @@
+/**
+ * ZzidulyaDLC - Cyberpunk Keyframe Animations
+ */
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(176, 38, 255, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+    border-color: rgba(176, 38, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 242, 254, 0.6), inset 0 0 25px rgba(247, 37, 133, 0.3);
+    border-color: rgba(0, 242, 254, 0.8);
+  }
+}
+
+@keyframes textShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatHero {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(1000%);
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+  }
+}
+
+@keyframes progressShrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes badgeBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes radarWave {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Helper animation utility classes */
+.anim-pulse-glow {
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+
+.anim-float {
+  animation: floatHero 6s infinite ease-in-out;
+}
+
+.anim-spin {
+  animation: spin 1s infinite linear;
+}
+
+.anim-blink {
+  animation: badgeBlink 2s infinite ease-in-out;
+}
+
+.text-gradient-shimmer {
+  background: linear-gradient(90deg, #00f2fe, #b026ff, #f72585, #00f2fe);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 6s linear infinite;
+}
