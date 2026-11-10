@@ -202,26 +202,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/gdeagusha/zzidulyadlc/releases/download/v1.0.0/NursultanClient-fixed.zip';
+
   // --- Download Trigger ---
   function handleDownloadClick() {
-    if (!currentUser) {
-      Toast.warn('Для скачивания необходимо войти в аккаунт');
-      openModal(modalAuth);
-      return;
-    }
-    if (currentUser.is_banned) {
-      Toast.error(`Ваш аккаунт заблокирован: ${currentUser.ban_reason || 'Блокировка'}`);
-      return;
-    }
-    if (!currentUser.has_active_sub) {
-      Toast.warn('Для скачивания требуется активный ключ. Активируйте его в кабинете!');
-      openCabinetModal();
+    if (currentUser) {
+      if (currentUser.is_banned) {
+        Toast.error(`Ваш аккаунт заблокирован: ${currentUser.ban_reason || 'Блокировка'}`);
+        return;
+      }
+      if (!currentUser.has_active_sub) {
+        Toast.warn('Для скачивания требуется активный ключ. Активируйте его в кабинете!');
+        openCabinetModal();
+        return;
+      }
+      Toast.info('Начало загрузки архива NursultanClient-fixed...');
+      window.location.href = API.getDownloadUrl();
       return;
     }
 
-    Toast.info('Начало загрузки архива NursultanClient-fixed...');
-    // Direct browser navigation to download endpoint (which checks auth cookies)
-    window.location.href = API.getDownloadUrl();
+    const isGitHubPages = window.location.hostname.includes('github.io');
+    if (isGitHubPages) {
+      Toast.info('Загрузка сборки клиента с GitHub Releases...');
+      window.location.href = GITHUB_RELEASE_DOWNLOAD_URL;
+      return;
+    }
+
+    Toast.warn('Для скачивания необходимо войти в аккаунт');
+    openModal(modalAuth);
   }
 
   if (btnHeroDownload) btnHeroDownload.addEventListener('click', handleDownloadClick);
