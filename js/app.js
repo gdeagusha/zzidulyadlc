@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/gdeagusha/zzidulyadlc/releases/download/v1.0.0/ZzidulyaDLC-Client.zip';
+  const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/gdeagusha/zzidulyadlc/releases/download/v1.0.0/ZzidulyaLoader.exe';
 
   // --- Download Trigger ---
   function handleDownloadClick() {
@@ -224,13 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Только для пользователей с подтверждённой активной подпиской
-    Toast.success('Подписка подтверждена! Загрузка клиента ZzidulyaDLC...');
-    const isGitHubPages = window.location.hostname.includes('github.io');
-    if (isGitHubPages) {
-      window.location.href = GITHUB_RELEASE_DOWNLOAD_URL;
-    } else {
-      window.location.href = API.getDownloadUrl();
-    }
+    Toast.success('Подписка подтверждена! Загрузка ZzidulyaLoader.exe...');
+    window.location.href = GITHUB_RELEASE_DOWNLOAD_URL;
   }
 
   if (btnHeroDownload) btnHeroDownload.addEventListener('click', handleDownloadClick);
