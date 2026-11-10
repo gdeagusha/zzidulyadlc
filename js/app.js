@@ -206,30 +206,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Download Trigger ---
   function handleDownloadClick() {
-    if (currentUser) {
-      if (currentUser.is_banned) {
-        Toast.error(`Ваш аккаунт заблокирован: ${currentUser.ban_reason || 'Блокировка'}`);
-        return;
-      }
-      if (!currentUser.has_active_sub) {
-        Toast.warn('Для скачивания требуется активный ключ. Активируйте его в кабинете!');
-        openCabinetModal();
-        return;
-      }
-      Toast.info('Начало загрузки архива клиента ZzidulyaDLC...');
-      window.location.href = API.getDownloadUrl();
+    if (!currentUser) {
+      Toast.warn('Для скачивания необходимо войти в аккаунт');
+      openModal(modalAuth);
       return;
     }
 
+    if (currentUser.is_banned) {
+      Toast.error(`Ваш аккаунт заблокирован: ${currentUser.ban_reason || 'Блокировка'}`);
+      return;
+    }
+
+    if (!currentUser.has_active_sub) {
+      Toast.error('Доступ запрещён! Для скачивания требуется активная подписка. Активируйте ключ в кабинете!');
+      openCabinetModal();
+      return;
+    }
+
+    // Только для пользователей с подтверждённой активной подпиской
+    Toast.success('Подписка подтверждена! Загрузка клиента ZzidulyaDLC...');
     const isGitHubPages = window.location.hostname.includes('github.io');
     if (isGitHubPages) {
-      Toast.info('Загрузка сборки ZzidulyaDLC с GitHub Releases...');
       window.location.href = GITHUB_RELEASE_DOWNLOAD_URL;
-      return;
+    } else {
+      window.location.href = API.getDownloadUrl();
     }
-
-    Toast.warn('Для скачивания необходимо войти в аккаунт');
-    openModal(modalAuth);
   }
 
   if (btnHeroDownload) btnHeroDownload.addEventListener('click', handleDownloadClick);
