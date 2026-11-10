@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/gdeagusha/zzidulyadlc/releases/download/v1.0.0/NursultanClient-fixed.zip';
+  const GITHUB_RELEASE_DOWNLOAD_URL = 'https://github.com/gdeagusha/zzidulyadlc/releases/download/v1.0.0/ZzidulyaDLC-Client.zip';
 
   // --- Download Trigger ---
   function handleDownloadClick() {
@@ -216,14 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
         openCabinetModal();
         return;
       }
-      Toast.info('Начало загрузки архива NursultanClient-fixed...');
+      Toast.info('Начало загрузки архива клиента ZzidulyaDLC...');
       window.location.href = API.getDownloadUrl();
       return;
     }
 
     const isGitHubPages = window.location.hostname.includes('github.io');
     if (isGitHubPages) {
-      Toast.info('Загрузка сборки клиента с GitHub Releases...');
+      Toast.info('Загрузка сборки ZzidulyaDLC с GitHub Releases...');
       window.location.href = GITHUB_RELEASE_DOWNLOAD_URL;
       return;
     }
