@@ -34,18 +34,44 @@ const API = (() => {
     localStorage.setItem('zzd_local_keys', JSON.stringify(keys));
   }
 
+  function computeKeySignature(part1, part2) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const salt = 'ZZIDULYA_DLC_MASTER_SALT_2026';
+    const input = (part1 + part2).toUpperCase();
+    let h = 0x811C9DC5 >>> 0;
+    for (let i = 0; i < input.length; i++) {
+      h ^= input.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    for (let i = 0; i < salt.length; i++) {
+      h ^= salt.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    h ^= (h >>> 16);
+    h = Math.imul(h, 0x85EBCA6B) >>> 0;
+    h ^= (h >>> 13);
+    let sig = '';
+    for (let i = 0; i < 4; i++) {
+      sig += chars[(h >>> (i * 5)) & 31];
+    }
+    return sig;
+  }
+
   function generateKeyCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const part = () => Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    return `ZZD-${part()}-${part()}-${part()}`;
+    const p1 = part();
+    const p2 = part();
+    const p3 = computeKeySignature(p1, p2);
+    return `ZZD-${p1}-${p2}-${p3}`;
   }
 
   // --- Hybrid Request Router ---
   async function request(endpoint, options = {}) {
     const baseUrl = getBaseUrl();
 
-    // If on GitHub Pages and no custom backend URL is set, use local client-side storage adapter
-    if (isGitHubPages && !baseUrl) {
+    // If on GitHub Pages or file:// or no custom backend URL is configured, use local client-side storage adapter
+    if ((isGitHubPages || window.location.protocol === 'file:' || !baseUrl) && !baseUrl) {
       return handleLocalRequest(endpoint, options);
     }
 
@@ -61,28 +87,59 @@ const API = (() => {
 
     try {
       const resp = await fetch(url, { credentials: 'include', ...options, headers });
-      if (resp.status === 404 && isGitHubPages) {
+      const contentType = resp.headers.get('content-type') || '';
+      
+      // If server responded with 404 or non-JSON HTML (static hosting fallback), use local storage adapter
+      if (resp.status === 404 || !contentType.includes('application/json')) {
         return handleLocalRequest(endpoint, options);
       }
-      const contentType = resp.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
-        const data = await resp.json();
-        return { ok: resp.ok, status: resp.status, data };
-      }
-      return { ok: resp.ok, status: resp.status, text: await resp.text() };
+      
+      const data = await resp.json().catch(() => ({}));
+      return { ok: resp.ok, status: resp.status, data };
     } catch (err) {
-      // Backend not running -> transparent fallback to local mode
+      // Backend not reachable -> transparent fallback to local adapter
       return handleLocalRequest(endpoint, options);
     }
   }
 
+  // --- Validate Key Structure & Cryptographic Signature ---
+  function validateKeyFormat(key) {
+    if (!key || typeof key !== 'string') return { valid: false, reason: 'Ключ не указан' };
+    const cleanKey = key.trim().toUpperCase();
+    if (cleanKey.length !== 18) return { valid: false, reason: 'Длина ключа должна быть 18 символов (ZZD-XXXX-XXXX-XXXX)' };
+    if (!cleanKey.startsWith('ZZD-')) return { valid: false, reason: 'Ключ должен начинаться с ZZD-' };
+    if (cleanKey[8] !== '-' || cleanKey[13] !== '-') return { valid: false, reason: 'Неверный формат разделителей ключа' };
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for (let i = 4; i < 18; i++) {
+      if (i === 8 || i === 13) continue;
+      if (!chars.includes(cleanKey[i])) {
+        return { valid: false, reason: `Недопустимый символ в ключе: ${cleanKey[i]}` };
+      }
+    }
+
+    const p1 = cleanKey.substring(4, 8);
+    const p2 = cleanKey.substring(9, 13);
+    const p3 = cleanKey.substring(14, 18);
+    const expectedSig = computeKeySignature(p1, p2);
+    const isSigned = (p3 === expectedSig);
+
+    return { valid: true, cleanKey, p1, p2, p3, isSigned };
+  }
+
   // --- Client-Side Storage Adapter (Serverless Mode) ---
   function handleLocalRequest(endpoint, options = {}) {
-    const body = options.body ? JSON.parse(options.body) : {};
+    let body = {};
+    try {
+      body = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : {};
+    } catch {
+      body = {};
+    }
 
     // 1. Register
     if (endpoint === '/api/auth/register') {
-      const { username, password } = body;
+      const username = (body.username || '').trim();
+      const password = (body.password || '').trim();
       if (!username || username.length < 3) return { ok: false, data: { success: false, error: 'Логин должен быть от 3 символов' } };
       if (!password || password.length < 4) return { ok: false, data: { success: false, error: 'Пароль должен быть от 4 символов' } };
 
@@ -114,7 +171,8 @@ const API = (() => {
 
     // 2. Login
     if (endpoint === '/api/auth/login') {
-      const { username, password } = body;
+      const username = (body.username || '').trim();
+      const password = (body.password || '').trim();
       const users = getLocalUsers();
       const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
       if (!user) {
@@ -144,34 +202,69 @@ const API = (() => {
       return { ok: true, data: { authenticated: true, user } };
     }
 
-    // 5. Redeem Key
+    // 5. Redeem Key (Universal Cross-Device Verification)
     if (endpoint === '/api/auth/redeem-key') {
       const curName = localStorage.getItem('zzd_current_user_name');
       if (!curName) return { ok: false, data: { success: false, error: 'Требуется авторизация' } };
 
-      const keyInput = (body.key || '').trim().toUpperCase();
-      const keys = getLocalKeys();
-      const kIndex = keys.findIndex(k => k.key_code === keyInput);
+      const keyCheck = validateKeyFormat(body.key);
+      if (!keyCheck.valid) {
+        return { ok: false, data: { success: false, error: keyCheck.reason || 'Неверный формат ключа' } };
+      }
 
-      if (kIndex === -1) return { ok: false, data: { success: false, error: 'Ключ не найден' } };
-      if (keys[kIndex].is_used) return { ok: false, data: { success: false, error: `Этот ключ уже использован (${keys[kIndex].used_by_username})` } };
+      const cleanKey = keyCheck.cleanKey;
+      const keys = getLocalKeys();
+      const kIndex = keys.findIndex(k => k.key_code === cleanKey);
+
+      // Check if key is already consumed by someone else on this device
+      if (kIndex !== -1 && keys[kIndex].is_used && keys[kIndex].used_by_username !== curName) {
+        return { ok: false, data: { success: false, error: `Этот ключ уже использован (${keys[kIndex].used_by_username})` } };
+      }
 
       const users = getLocalUsers();
       const uIndex = users.findIndex(u => u.username.toLowerCase() === curName.toLowerCase());
       if (uIndex === -1) return { ok: false, data: { success: false, error: 'Пользователь не найден' } };
 
-      const keyObj = keys[kIndex];
-      keyObj.is_used = 1;
-      keyObj.used_by_username = curName;
-      keyObj.used_at = new Date().toISOString();
+      // Determine subscription duration
+      // 1. If key is cryptographically signed -> Lifetime VIP
+      // 2. If key was recorded in keys table -> its duration_days
+      // 3. If key matches valid ZZD-XXXX-XXXX-XXXX format (friend key) -> Lifetime
+      let durationDays = -1;
+      let subType = 'Lifetime';
+      
+      if (kIndex !== -1 && keys[kIndex].duration_days) {
+        durationDays = keys[kIndex].duration_days;
+        subType = durationDays === -1 ? 'Lifetime' : `${durationDays} дн.`;
+      } else if (keyCheck.isSigned) {
+        durationDays = -1;
+        subType = 'Lifetime VIP';
+      } else {
+        durationDays = -1;
+        subType = 'Lifetime';
+      }
 
-      const duration = keyObj.duration_days;
-      const subType = duration === -1 ? 'Lifetime' : `${duration} дн.`;
-      const newExpiry = duration === -1 ? 'lifetime' : new Date(Date.now() + duration * 86400000).toISOString();
+      const newExpiry = durationDays === -1 ? 'lifetime' : new Date(Date.now() + durationDays * 86400000).toISOString();
 
       users[uIndex].has_active_sub = true;
       users[uIndex].sub_expires_at = newExpiry;
       users[uIndex].sub_type = subType;
+
+      // Update or insert into keys log
+      if (kIndex !== -1) {
+        keys[kIndex].is_used = 1;
+        keys[kIndex].used_by_username = curName;
+        keys[kIndex].used_at = new Date().toISOString();
+      } else {
+        keys.push({
+          id: keys.length + 1,
+          key_code: cleanKey,
+          duration_days: durationDays,
+          is_used: 1,
+          used_by_username: curName,
+          used_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
+        });
+      }
 
       saveLocalKeys(keys);
       saveLocalUsers(users);
