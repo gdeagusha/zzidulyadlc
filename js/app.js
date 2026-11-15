@@ -594,12 +594,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Downloads ---
-  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe?v=20261115f';
+  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe?v=20261115g';
 
   function resolveLoaderUrl() {
-    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe?v=20261115f`;
+    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe?v=20261115g`;
     if (window.location.protocol.startsWith('http')) {
-      return './ZzidulyaLoader.exe?v=20261115f';
+      return './ZzidulyaLoader.exe?v=20261115g';
     }
     return PAGES_LOADER_DOWNLOAD_URL;
   }
@@ -1139,12 +1139,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function handleHashRoute() {
+    if (window.location.hash === '#cabinet') {
+      openCabinetModal();
+    } else if (window.location.hash === '#admin') {
+      openModal(modalAdmin);
+      checkAdminState();
+    }
+  }
+
   if (window.location.pathname.includes('/admin') || window.location.hash === '#admin') {
     openModal(modalAdmin);
     checkAdminState();
   }
 
+  window.addEventListener('hashchange', handleHashRoute);
+
   // Init
   loadPublicInfo();
-  checkAuthState();
+  checkAuthState().then(() => {
+    if (window.location.hash === '#cabinet') {
+      openCabinetModal();
+    }
+  });
 });
