@@ -63,13 +63,31 @@ const API = (() => {
     return sig;
   }
 
-  function generateKeyCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const part = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    const p1 = part();
-    const p2 = part();
-    const p3 = computeKeySignature(p1, p2);
-    return `ZZD-${p1}-${p2}-${p3}`;
+  const KEY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const DURATION_TO_TIER = { 1: 0, 7: 1, 30: 2, 90: 3, '-1': 4 };
+  const TIER_TO_DURATION = { 0: 1, 1: 7, 2: 30, 3: 90, 4: -1 };
+
+  function generateKeyCode(durationDays = -1) {
+    const part2 = Array.from({ length: 4 }, () => KEY_ALPHABET[Math.floor(Math.random() * KEY_ALPHABET.length)]).join('');
+    const tier = Object.prototype.hasOwnProperty.call(DURATION_TO_TIER, durationDays) ? DURATION_TO_TIER[durationDays] : 2;
+    const mask = KEY_ALPHABET.indexOf(part2[0]) & 7;
+    const highBits = (Math.floor(Math.random() * 4) << 3);
+    const firstChar = KEY_ALPHABET[highBits | ((tier ^ mask) & 7)];
+    const part1 = firstChar + Array.from({ length: 3 }, () => KEY_ALPHABET[Math.floor(Math.random() * KEY_ALPHABET.length)]).join('');
+    const p3 = computeKeySignature(part1, part2);
+    return `ZZD-${part1}-${part2}-${p3}`;
+  }
+
+  function decodeKeyTierDays(key) {
+    const norm = normalizeKey(key);
+    if (norm === 'ZZD-8XH4-XMDT-FC6H') return -1;
+    const parts = norm.split('-');
+    if (parts.length !== 4 || parts[1].length !== 4 || parts[2].length !== 4) return 30;
+    const i1 = KEY_ALPHABET.indexOf(parts[1][0]);
+    const i2 = KEY_ALPHABET.indexOf(parts[2][0]);
+    if (i1 < 0 || i2 < 0) return 30;
+    const tier = (i1 ^ i2) & 7;
+    return Object.prototype.hasOwnProperty.call(TIER_TO_DURATION, tier) ? TIER_TO_DURATION[tier] : 30;
   }
 
   function normalizeKey(key) {
@@ -186,7 +204,7 @@ const API = (() => {
         }
         const keys = getLocalKeys();
         const kIndex = keys.findIndex(k => k.key_code === keyCheck.cleanKey);
-        const durDays = (kIndex !== -1 && keys[kIndex].duration_days) ? keys[kIndex].duration_days : -1;
+        const durDays = (kIndex !== -1 && keys[kIndex].duration_days) ? keys[kIndex].duration_days : decodeKeyTierDays(keyCheck.cleanKey);
 
         subActive = true;
         subExpiry = durDays === -1 ? 'lifetime' : new Date(Date.now() + durDays * 86400000).toISOString();
@@ -276,12 +294,13 @@ const API = (() => {
       if (uIndex === -1) return { ok: false, status: 404, data: { success: false, error: 'Пользователь не найден' } };
       if (users[uIndex].is_banned) return { ok: false, status: 403, data: { success: false, error: 'Аккаунт заблокирован' } };
 
-      let durationDays = -1;
-      let subType = 'Lifetime';
+      let durationDays = decodeKeyTierDays(cleanKey);
+      let subType = durationDays === -1 ? 'Lifetime' : `${durationDays} дн.`;
       if (kIndex !== -1 && keys[kIndex].duration_days) {
         durationDays = keys[kIndex].duration_days;
         subType = durationDays === -1 ? 'Lifetime' : `${durationDays} дн.`;
-      } else if (keyCheck.isSigned) {
+      } else if (cleanKey === 'ZZD-8XH4-XMDT-FC6H') {
+        durationDays = -1;
         subType = 'Lifetime VIP';
       }
 
@@ -346,7 +365,7 @@ const API = (() => {
         data: {
           stats,
           archive: {
-            source_path: 'D:\\ZzidulyaDLC\\NursultanClient-fixed',
+            source_path: 'D:\\ZzidulyaDLC\\ZzidulyaClient',
             archive_exists: true,
             archive_size_mb: 646.88,
             is_building: false,
@@ -402,7 +421,7 @@ const API = (() => {
         let nextId = keys.length ? Math.max(...keys.map(k => k.id)) + 1 : 1;
 
         for (let i = 0; i < count; i++) {
-          const code = generateKeyCode();
+          const code = generateKeyCode(duration_days);
           keys.unshift({
             id: nextId++,
             key_code: code,
@@ -434,7 +453,7 @@ const API = (() => {
         ok: true,
         status: 200,
         data: {
-          source_path: 'D:\\ZzidulyaDLC\\NursultanClient-fixed',
+          source_path: 'D:\\ZzidulyaDLC\\ZzidulyaClient',
           archive_exists: true,
           archive_size_mb: 646.88,
           is_building: false,

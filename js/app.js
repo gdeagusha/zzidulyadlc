@@ -594,12 +594,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Downloads ---
-  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe?v=20261115b';
+  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe?v=20261115d';
 
   function resolveLoaderUrl() {
-    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe?v=20261115b`;
+    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe?v=20261115d`;
     if (window.location.protocol.startsWith('http')) {
-      return './ZzidulyaLoader.exe?v=20261115b';
+      return './ZzidulyaLoader.exe?v=20261115d';
     }
     return PAGES_LOADER_DOWNLOAD_URL;
   }
