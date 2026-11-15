@@ -594,12 +594,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Downloads ---
-  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe';
+  const PAGES_LOADER_DOWNLOAD_URL = 'https://gdeagusha.github.io/zzidulyadlc/ZzidulyaLoader.exe?v=20261115b';
 
   function resolveLoaderUrl() {
-    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe`;
+    if (API.getBaseUrl()) return `${API.getBaseUrl()}/ZzidulyaLoader.exe?v=20261115b`;
     if (window.location.protocol.startsWith('http')) {
-      return './ZzidulyaLoader.exe';
+      return './ZzidulyaLoader.exe?v=20261115b';
     }
     return PAGES_LOADER_DOWNLOAD_URL;
   }
@@ -626,7 +626,12 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = API.getDownloadUrl();
     } else {
       Toast.success('Подписка активна! Скачивание ZzidulyaLoader.exe...');
-      window.location.href = resolveLoaderUrl();
+      const a = document.createElement('a');
+      a.href = resolveLoaderUrl();
+      a.download = 'ZzidulyaLoader.exe';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
   }
 

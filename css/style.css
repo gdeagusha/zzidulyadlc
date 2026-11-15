@@ -1,8 +1,6 @@
 /**
  * ZzidulyaDLC — Production Stylesheet
  */
-@import url('variables.css');
-@import url('animations.css');
 
 *, *::before, *::after {
   box-sizing: border-box;
