@@ -1,10 +1,18 @@
 /**
- * ZzidulyaDLC - Universal API & Client Storage Adapter
- * Automatically works on both direct Starlette backend and static GitHub Pages.
+ * ZzidulyaDLC — Universal API & Offline GitHub Pages Adapter
  */
 const API = (() => {
   const isGitHubPages = window.location.hostname.includes('github.io');
-  const getBaseUrl = () => localStorage.getItem('zzd_backend_url') || '';
+  const isFileProtocol = window.location.protocol === 'file:';
+
+  const getBaseUrl = () => (localStorage.getItem('zzd_backend_url') || '').trim().replace(/\/+$/, '');
+  const setBaseUrl = (url) => {
+    const clean = (url || '').trim().replace(/\/+$/, '');
+    if (clean) localStorage.setItem('zzd_backend_url', clean);
+    else localStorage.removeItem('zzd_backend_url');
+  };
+
+  const hasLiveBackend = () => Boolean(getBaseUrl()) || (!isGitHubPages && !isFileProtocol && window.location.protocol.startsWith('http'));
 
   const getUserToken = () => localStorage.getItem('zzd_user_token') || '';
   const setUserToken = (t) => t ? localStorage.setItem('zzd_user_token', t) : localStorage.removeItem('zzd_user_token');
@@ -15,20 +23,18 @@ const API = (() => {
   const getAdminPassword = () => localStorage.getItem('zzd_admin_password') || 'admin_zzidulya_2026';
   const setAdminPassword = (p) => localStorage.setItem('zzd_admin_password', p);
 
-  // --- Local Database Helpers (for standalone GitHub Pages) ---
+  // --- Local Storage Helpers (Standalone GitHub Pages Mode) ---
   function getLocalUsers() {
-    try {
-      return JSON.parse(localStorage.getItem('zzd_local_users') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('zzd_local_users') || '[]'); }
+    catch { return []; }
   }
   function saveLocalUsers(users) {
     localStorage.setItem('zzd_local_users', JSON.stringify(users));
   }
 
   function getLocalKeys() {
-    try {
-      return JSON.parse(localStorage.getItem('zzd_local_keys') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('zzd_local_keys') || '[]'); }
+    catch { return []; }
   }
   function saveLocalKeys(keys) {
     localStorage.setItem('zzd_local_keys', JSON.stringify(keys));
@@ -59,75 +65,92 @@ const API = (() => {
 
   function generateKeyCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const part = () => Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const part = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     const p1 = part();
     const p2 = part();
     const p3 = computeKeySignature(p1, p2);
     return `ZZD-${p1}-${p2}-${p3}`;
   }
 
+  function normalizeKey(key) {
+    if (!key || typeof key !== 'string') return '';
+    let clean = key.trim().toUpperCase().replace(/[\s_]+/g, '-');
+    if (!clean) return '';
+    if (!clean.startsWith('ZZD-')) {
+      if (clean.startsWith('ZZD')) clean = 'ZZD-' + clean.substring(3).replace(/^-+/, '');
+      else clean = 'ZZD-' + clean.replace(/^-+/, '');
+    }
+    const rest = clean.substring(4).replace(/-/g, '');
+    if (rest.length === 12) {
+      return `ZZD-${rest.substring(0, 4)}-${rest.substring(4, 8)}-${rest.substring(8, 12)}`;
+    }
+    return clean;
+  }
+
+  function validateKeyFormat(key) {
+    if (!key || typeof key !== 'string') return { valid: false, reason: 'Ключ не указан' };
+    const cleanKey = normalizeKey(key);
+    if (cleanKey.length !== 18) return { valid: false, reason: 'Формат: ZZD-XXXX-XXXX-XXXX (18 символов)' };
+    if (!cleanKey.startsWith('ZZD-')) return { valid: false, reason: 'Ключ должен начинаться с ZZD-' };
+
+    const parts = cleanKey.split('-');
+    if (parts.length !== 4) return { valid: false, reason: 'Неверный формат разделителей ключа' };
+
+    for (let i = 1; i <= 3; i++) {
+      if (parts[i].length !== 4 || !/^[A-Z0-9]{4}$/.test(parts[i])) {
+        return { valid: false, reason: 'Допустимы только латинские буквы и цифры' };
+      }
+    }
+
+    const p1 = parts[1];
+    const p2 = parts[2];
+    const p3 = parts[3];
+    const expectedSig = computeKeySignature(p1, p2);
+    const isMaster = cleanKey === 'ZZD-8XH4-XMDT-FC6H';
+    const isSigned = isMaster || (p3 === expectedSig);
+
+    return { valid: true, cleanKey, p1, p2, p3, isSigned };
+  }
+
   // --- Hybrid Request Router ---
   async function request(endpoint, options = {}) {
-    const baseUrl = getBaseUrl();
-
-    // If on GitHub Pages or file:// or no custom backend URL is configured, use local client-side storage adapter
-    if ((isGitHubPages || window.location.protocol === 'file:' || !baseUrl) && !baseUrl) {
+    if (!hasLiveBackend()) {
       return handleLocalRequest(endpoint, options);
     }
 
-    // Try backend HTTP request
-    const url = `${baseUrl || window.location.origin}${endpoint}`;
+    const base = getBaseUrl() || window.location.origin;
+    const url = `${base}${endpoint}`;
     const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
 
     if (options.asAdmin && getAdminToken()) {
       headers['Authorization'] = `Bearer ${getAdminToken()}`;
-    } else if (getUserToken()) {
+    } else if (!options.asAdmin && getUserToken()) {
       headers['Authorization'] = `Bearer ${getUserToken()}`;
     }
 
     try {
       const resp = await fetch(url, { credentials: 'include', ...options, headers });
       const contentType = resp.headers.get('content-type') || '';
-      
-      // If server responded with 404 or non-JSON HTML (static hosting fallback), use local storage adapter
-      if (resp.status === 404 || !contentType.includes('application/json')) {
+
+      if (resp.status === 404 && !contentType.includes('application/json')) {
         return handleLocalRequest(endpoint, options);
       }
-      
+
+      if (!contentType.includes('application/json')) {
+        return { ok: false, status: resp.status, data: { success: false, error: `Сервер вернул неожиданный ответ (${resp.status})` } };
+      }
+
       const data = await resp.json().catch(() => ({}));
       return { ok: resp.ok, status: resp.status, data };
-    } catch (err) {
-      // Backend not reachable -> transparent fallback to local adapter
-      return handleLocalRequest(endpoint, options);
-    }
-  }
-
-  // --- Validate Key Structure & Cryptographic Signature ---
-  function validateKeyFormat(key) {
-    if (!key || typeof key !== 'string') return { valid: false, reason: 'Ключ не указан' };
-    const cleanKey = key.trim().toUpperCase();
-    if (cleanKey.length !== 18) return { valid: false, reason: 'Длина ключа должна быть 18 символов (ZZD-XXXX-XXXX-XXXX)' };
-    if (!cleanKey.startsWith('ZZD-')) return { valid: false, reason: 'Ключ должен начинаться с ZZD-' };
-    if (cleanKey[8] !== '-' || cleanKey[13] !== '-') return { valid: false, reason: 'Неверный формат разделителей ключа' };
-
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    for (let i = 4; i < 18; i++) {
-      if (i === 8 || i === 13) continue;
-      if (!chars.includes(cleanKey[i])) {
-        return { valid: false, reason: `Недопустимый символ в ключе: ${cleanKey[i]}` };
+    } catch {
+      if (isGitHubPages || isFileProtocol) {
+        return handleLocalRequest(endpoint, options);
       }
+      return { ok: false, status: 0, data: { success: false, error: 'Сервер недоступен. Проверьте подключение.' } };
     }
-
-    const p1 = cleanKey.substring(4, 8);
-    const p2 = cleanKey.substring(9, 13);
-    const p3 = cleanKey.substring(14, 18);
-    const expectedSig = computeKeySignature(p1, p2);
-    const isSigned = (p3 === expectedSig);
-
-    return { valid: true, cleanKey, p1, p2, p3, isSigned };
   }
 
-  // --- Client-Side Storage Adapter (Serverless Mode) ---
+  // --- Client-Side Storage Adapter (Standalone Static Fallback) ---
   function handleLocalRequest(endpoint, options = {}) {
     let body = {};
     try {
@@ -136,27 +159,66 @@ const API = (() => {
       body = {};
     }
 
-    // 1. Register
     if (endpoint === '/api/auth/register') {
       const username = (body.username || '').trim();
       const password = (body.password || '').trim();
-      if (!username || username.length < 3) return { ok: false, data: { success: false, error: 'Логин должен быть от 3 символов' } };
-      if (!password || password.length < 4) return { ok: false, data: { success: false, error: 'Пароль должен быть от 4 символов' } };
+      const keyInput = (body.key || '').trim();
+      if (!username || username.length < 3 || username.length > 32) {
+        return { ok: false, status: 400, data: { success: false, error: 'Логин должен быть от 3 до 32 символов' } };
+      }
+      if (!password || password.length < 4) {
+        return { ok: false, status: 400, data: { success: false, error: 'Пароль должен быть от 4 символов' } };
+      }
 
       const users = getLocalUsers();
       if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        return { ok: false, data: { success: false, error: 'Пользователь с таким логином уже существует' } };
+        return { ok: false, status: 400, data: { success: false, error: 'Пользователь с таким логином уже существует' } };
+      }
+
+      let subActive = false;
+      let subExpiry = null;
+      let subType = null;
+
+      if (keyInput) {
+        const keyCheck = validateKeyFormat(keyInput);
+        if (!keyCheck.valid) {
+          return { ok: false, status: 400, data: { success: false, error: keyCheck.reason || 'Неверный формат ключа' } };
+        }
+        const keys = getLocalKeys();
+        const kIndex = keys.findIndex(k => k.key_code === keyCheck.cleanKey);
+        const durDays = (kIndex !== -1 && keys[kIndex].duration_days) ? keys[kIndex].duration_days : -1;
+
+        subActive = true;
+        subExpiry = durDays === -1 ? 'lifetime' : new Date(Date.now() + durDays * 86400000).toISOString();
+        subType = durDays === -1 ? (keyCheck.isSigned ? 'Lifetime VIP' : 'Lifetime') : `${durDays} дн.`;
+
+        if (kIndex !== -1) {
+          keys[kIndex].is_used = 1;
+          keys[kIndex].used_by_username = username;
+          keys[kIndex].used_at = new Date().toISOString();
+        } else {
+          keys.push({
+            id: keys.length + 1,
+            key_code: keyCheck.cleanKey,
+            duration_days: durDays,
+            is_used: 1,
+            used_by_username: username,
+            used_at: new Date().toISOString(),
+            created_at: new Date().toISOString()
+          });
+        }
+        saveLocalKeys(keys);
       }
 
       const newUser = {
-        id: users.length + 1,
+        id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
         username,
         password,
         is_banned: 0,
         ban_reason: '',
-        has_active_sub: false,
-        sub_expires_at: null,
-        sub_type: null,
+        has_active_sub: subActive,
+        sub_expires_at: subExpiry,
+        sub_type: subType,
         total_downloads: 0,
         created_at: new Date().toISOString()
       };
@@ -166,97 +228,75 @@ const API = (() => {
       const token = `token_${username}_${Date.now()}`;
       setUserToken(token);
       localStorage.setItem('zzd_current_user_name', username);
-      return { ok: true, data: { success: true, token, user: newUser } };
+      const msg = subActive ? `Регистрация успешна! Ключ активирован (${subType}).` : 'Регистрация успешна! Добро пожаловать.';
+      return { ok: true, status: 200, data: { success: true, token, user: newUser, message: msg } };
     }
 
-    // 2. Login
     if (endpoint === '/api/auth/login') {
       const username = (body.username || '').trim();
       const password = (body.password || '').trim();
       const users = getLocalUsers();
       const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-      if (!user) {
-        return { ok: false, data: { success: false, error: 'Неверный логин или пароль' } };
-      }
+      if (!user) return { ok: false, status: 401, data: { success: false, error: 'Неверный логин или пароль' } };
 
       const token = `token_${username}_${Date.now()}`;
       setUserToken(token);
       localStorage.setItem('zzd_current_user_name', user.username);
-      return { ok: true, data: { success: true, token, user } };
+      return { ok: true, status: 200, data: { success: true, token, user } };
     }
 
-    // 3. Logout
     if (endpoint === '/api/auth/logout') {
       setUserToken('');
       localStorage.removeItem('zzd_current_user_name');
-      return { ok: true, data: { success: true } };
+      return { ok: true, status: 200, data: { success: true } };
     }
 
-    // 4. Get Current User
     if (endpoint === '/api/auth/me') {
       const curName = localStorage.getItem('zzd_current_user_name');
-      if (!curName || !getUserToken()) return { ok: true, data: { authenticated: false, user: null } };
+      if (!curName || !getUserToken()) return { ok: true, status: 200, data: { authenticated: false, user: null } };
       const users = getLocalUsers();
       const user = users.find(u => u.username.toLowerCase() === curName.toLowerCase());
-      if (!user) return { ok: true, data: { authenticated: false, user: null } };
-      return { ok: true, data: { authenticated: true, user } };
+      if (!user) return { ok: true, status: 200, data: { authenticated: false, user: null } };
+      return { ok: true, status: 200, data: { authenticated: true, user } };
     }
 
-    // 5. Redeem Key (Universal Cross-Device Verification)
     if (endpoint === '/api/auth/redeem-key') {
       const curName = localStorage.getItem('zzd_current_user_name');
-      if (!curName) return { ok: false, data: { success: false, error: 'Требуется авторизация' } };
+      if (!curName) return { ok: false, status: 401, data: { success: false, error: 'Требуется авторизация' } };
 
       const keyCheck = validateKeyFormat(body.key);
-      if (!keyCheck.valid) {
-        return { ok: false, data: { success: false, error: keyCheck.reason || 'Неверный формат ключа' } };
-      }
+      if (!keyCheck.valid) return { ok: false, status: 400, data: { success: false, error: keyCheck.reason } };
 
       const cleanKey = keyCheck.cleanKey;
       const keys = getLocalKeys();
       const kIndex = keys.findIndex(k => k.key_code === cleanKey);
 
-      // Check if key is already consumed by someone else on this device
-      if (kIndex !== -1 && keys[kIndex].is_used && keys[kIndex].used_by_username !== curName) {
-        return { ok: false, data: { success: false, error: `Этот ключ уже использован (${keys[kIndex].used_by_username})` } };
-      }
-
       const users = getLocalUsers();
       const uIndex = users.findIndex(u => u.username.toLowerCase() === curName.toLowerCase());
-      if (uIndex === -1) return { ok: false, data: { success: false, error: 'Пользователь не найден' } };
+      if (uIndex === -1) return { ok: false, status: 404, data: { success: false, error: 'Пользователь не найден' } };
+      if (users[uIndex].is_banned) return { ok: false, status: 403, data: { success: false, error: 'Аккаунт заблокирован' } };
 
-      // Determine subscription duration
-      // 1. If key is cryptographically signed -> Lifetime VIP
-      // 2. If key was recorded in keys table -> its duration_days
-      // 3. If key matches valid ZZD-XXXX-XXXX-XXXX format (friend key) -> Lifetime
       let durationDays = -1;
       let subType = 'Lifetime';
-      
       if (kIndex !== -1 && keys[kIndex].duration_days) {
         durationDays = keys[kIndex].duration_days;
         subType = durationDays === -1 ? 'Lifetime' : `${durationDays} дн.`;
       } else if (keyCheck.isSigned) {
-        durationDays = -1;
         subType = 'Lifetime VIP';
-      } else {
-        durationDays = -1;
-        subType = 'Lifetime';
       }
 
       const newExpiry = durationDays === -1 ? 'lifetime' : new Date(Date.now() + durationDays * 86400000).toISOString();
-
       users[uIndex].has_active_sub = true;
       users[uIndex].sub_expires_at = newExpiry;
       users[uIndex].sub_type = subType;
 
-      // Update or insert into keys log
       if (kIndex !== -1) {
         keys[kIndex].is_used = 1;
         keys[kIndex].used_by_username = curName;
         keys[kIndex].used_at = new Date().toISOString();
       } else {
         keys.push({
-          id: keys.length + 1,
+          id: keys.length ? Math.max(...keys.map(k => k.id)) + 1 : 1,
           key_code: cleanKey,
           duration_days: durationDays,
           is_used: 1,
@@ -268,27 +308,27 @@ const API = (() => {
 
       saveLocalKeys(keys);
       saveLocalUsers(users);
-
-      return { ok: true, data: { success: true, message: `Ключ успешно активирован! (${subType})`, user: users[uIndex] } };
+      return { ok: true, status: 200, data: { success: true, message: `Ключ активирован (${subType})`, user: users[uIndex] } };
     }
 
-    // 6. Admin Login
     if (endpoint === '/api/admin/login') {
-      const { password } = body;
-      if (password === getAdminPassword()) {
+      if (body.password === getAdminPassword()) {
         const token = `adm_token_${Date.now()}`;
         setAdminToken(token);
-        return { ok: true, data: { success: true, token } };
+        return { ok: true, status: 200, data: { success: true, token } };
       }
-      return { ok: false, data: { success: false, error: 'Неверный пароль администратора' } };
+      return { ok: false, status: 401, data: { success: false, error: 'Неверный пароль администратора' } };
     }
 
-    // 7. Admin Me
+    if (endpoint === '/api/admin/logout') {
+      setAdminToken('');
+      return { ok: true, status: 200, data: { success: true, message: 'Выход выполнен' } };
+    }
+
     if (endpoint === '/api/admin/me') {
-      return { ok: true, data: { is_admin: Boolean(getAdminToken()) } };
+      return { ok: true, status: 200, data: { is_admin: Boolean(getAdminToken()) } };
     }
 
-    // 8. Admin Stats
     if (endpoint === '/api/admin/stats') {
       const users = getLocalUsers();
       const keys = getLocalKeys();
@@ -300,24 +340,35 @@ const API = (() => {
         unused_keys: keys.filter(k => !k.is_used).length,
         total_downloads: users.reduce((acc, u) => acc + (u.total_downloads || 0), 0)
       };
-      return { ok: true, data: { stats, archive: { archive_exists: true, archive_size_mb: 646.88 } } };
+      return {
+        ok: true,
+        status: 200,
+        data: {
+          stats,
+          archive: {
+            source_path: 'D:\\ZzidulyaDLC\\NursultanClient-fixed',
+            archive_exists: true,
+            archive_size_mb: 646.88,
+            is_building: false,
+            progress: 100
+          }
+        }
+      };
     }
 
-    // 9. Admin Users List
     if (endpoint.startsWith('/api/admin/users') && options.method !== 'POST') {
       const searchMatch = endpoint.match(/search=([^&]+)/);
       const search = searchMatch ? decodeURIComponent(searchMatch[1]).toLowerCase() : '';
       let users = getLocalUsers();
       if (search) users = users.filter(u => u.username.toLowerCase().includes(search));
-      return { ok: true, data: { users } };
+      return { ok: true, status: 200, data: { users } };
     }
 
-    // 10. Admin User Action
     if (endpoint === '/api/admin/users/action') {
       const { action, user_id, reason, duration_days } = body;
       const users = getLocalUsers();
-      const idx = users.findIndex(u => u.id === parseInt(user_id));
-      if (idx === -1) return { ok: false, data: { success: false, error: 'Пользователь не найден' } };
+      const idx = users.findIndex(u => u.id === parseInt(user_id, 10));
+      if (idx === -1) return { ok: false, status: 404, data: { success: false, error: 'Пользователь не найден' } };
 
       if (action === 'ban') {
         users[idx].is_banned = 1;
@@ -326,7 +377,7 @@ const API = (() => {
         users[idx].is_banned = 0;
         users[idx].ban_reason = '';
       } else if (action === 'grant_sub') {
-        const dur = parseInt(duration_days || 30);
+        const dur = parseInt(duration_days || 30, 10);
         users[idx].has_active_sub = true;
         users[idx].sub_type = dur === -1 ? 'Lifetime' : `${dur} дн.`;
         users[idx].sub_expires_at = dur === -1 ? 'lifetime' : new Date(Date.now() + dur * 86400000).toISOString();
@@ -339,21 +390,21 @@ const API = (() => {
       }
 
       saveLocalUsers(users);
-      return { ok: true, data: { success: true, message: 'Действие выполнено' } };
+      return { ok: true, status: 200, data: { success: true, message: 'Действие выполнено' } };
     }
 
-    // 11. Admin Keys List & Generate
     if (endpoint === '/api/admin/keys') {
       if (options.method === 'POST') {
-        const count = parseInt(body.count || 1);
-        const duration_days = parseInt(body.duration_days || 30);
+        const count = Math.max(1, Math.min(100, parseInt(body.count || 1, 10)));
+        const duration_days = parseInt(body.duration_days || 30, 10);
         const keys = getLocalKeys();
         const created = [];
+        let nextId = keys.length ? Math.max(...keys.map(k => k.id)) + 1 : 1;
 
         for (let i = 0; i < count; i++) {
           const code = generateKeyCode();
-          keys.push({
-            id: keys.length + 1,
+          keys.unshift({
+            id: nextId++,
             key_code: code,
             duration_days,
             is_used: 0,
@@ -365,42 +416,60 @@ const API = (() => {
         }
 
         saveLocalKeys(keys);
-        return { ok: true, data: { success: true, created_keys: created, message: `Создано ключей: ${created.length}` } };
+        return { ok: true, status: 200, data: { success: true, created_keys: created, message: `Создано ключей: ${created.length}` } };
       }
-      return { ok: true, data: { keys: getLocalKeys() } };
+      return { ok: true, status: 200, data: { keys: getLocalKeys() } };
     }
 
-    // 12. Admin Delete Key
     if (endpoint.startsWith('/api/admin/keys/') && options.method === 'DELETE') {
-      const keyId = parseInt(endpoint.split('/').pop());
+      const keyId = parseInt(endpoint.split('/').pop(), 10);
       let keys = getLocalKeys();
       keys = keys.filter(k => k.id !== keyId);
       saveLocalKeys(keys);
-      return { ok: true, data: { success: true, message: 'Ключ удален' } };
+      return { ok: true, status: 200, data: { success: true, message: 'Ключ удален' } };
     }
 
-    // 13. Admin Password Change
+    if (endpoint === '/api/admin/archive/status') {
+      return {
+        ok: true,
+        status: 200,
+        data: {
+          source_path: 'D:\\ZzidulyaDLC\\NursultanClient-fixed',
+          archive_exists: true,
+          archive_size_mb: 646.88,
+          is_building: false,
+          progress: 100
+        }
+      };
+    }
+
+    if (endpoint === '/api/admin/archive/rebuild') {
+      return { ok: false, status: 400, data: { success: false, message: 'Пересборка архива доступна только при подключённом сервере Python.' } };
+    }
+
     if (endpoint === '/api/admin/change-password') {
       const { current_password, new_password } = body;
       if (current_password !== getAdminPassword()) {
-        return { ok: false, data: { success: false, error: 'Неверный текущий пароль' } };
+        return { ok: false, status: 400, data: { success: false, error: 'Неверный текущий пароль' } };
       }
       if (!new_password || new_password.length < 6) {
-        return { ok: false, data: { success: false, error: 'Пароль должен содержать от 6 символов' } };
+        return { ok: false, status: 400, data: { success: false, error: 'Пароль должен содержать от 6 символов' } };
       }
       setAdminPassword(new_password);
-      return { ok: true, data: { success: true, message: 'Пароль администратора успешно изменен' } };
+      return { ok: true, status: 200, data: { success: true, message: 'Пароль администратора изменён' } };
     }
 
-    // 14. Public Info
     if (endpoint === '/api/public-info') {
       const users = getLocalUsers();
       return {
         ok: true,
+        status: 200,
         data: {
           project_name: 'ZzidulyaDLC',
+          telegram_link: 'https://t.me/zzidulyadlc',
+          discord_link: 'https://discord.gg/',
           total_users: users.length,
-          total_downloads: 389,
+          total_downloads: 0,
           active_sub_users: users.filter(u => u.has_active_sub).length,
           archive_size_mb: 646.88,
           archive_ready: true
@@ -413,14 +482,17 @@ const API = (() => {
 
   return {
     getBaseUrl,
-    setBaseUrl: (url) => localStorage.setItem('zzd_backend_url', url),
+    setBaseUrl,
+    hasLiveBackend,
+    normalizeKey,
+    validateKeyFormat,
     getUserToken,
     setUserToken,
     getAdminToken,
     setAdminToken,
 
     getPublicInfo: () => request('/api/public-info'),
-    register: (username, password) => request('/api/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
+    register: (username, password, key = '') => request('/api/auth/register', { method: 'POST', body: JSON.stringify({ username, password, key }) }),
     login: (username, password) => request('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
     logout: () => {
       setUserToken('');

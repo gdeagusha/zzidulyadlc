@@ -1,5 +1,5 @@
 /**
- * ZzidulyaDLC - Neon Toast Notifications
+ * ZzidulyaDLC — XSS-Safe Toast Notifications
  */
 const Toast = (() => {
   let container = null;
@@ -12,25 +12,36 @@ const Toast = (() => {
     }
   }
 
-  function show(message, type = 'info', duration = 3500) {
+  function show(message, type = 'info', duration = 3600) {
     ensureContainer();
     const item = document.createElement('div');
     item.className = `toast-item toast-${type}`;
-    
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ';
-    
-    item.innerHTML = `
-      <div class="toast-icon">${icon}</div>
-      <div class="toast-body">${message}</div>
-      <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
-    `;
 
+    const icon = document.createElement('div');
+    icon.className = 'toast-icon';
+    icon.textContent = type === 'success' ? '✓' : type === 'error' ? '!' : type === 'warning' ? '▲' : 'i';
+
+    const body = document.createElement('div');
+    body.className = 'toast-body';
+    body.textContent = String(message || '');
+
+    const progress = document.createElement('div');
+    progress.className = 'toast-progress';
+    progress.style.animationDuration = `${duration}ms`;
+
+    item.appendChild(icon);
+    item.appendChild(body);
+    item.appendChild(progress);
     container.appendChild(item);
 
-    setTimeout(() => {
+    const dismiss = () => {
+      if (item.classList.contains('toast-leave')) return;
       item.classList.add('toast-leave');
-      setTimeout(() => item.remove(), 300);
-    }, duration);
+      setTimeout(() => item.remove(), 240);
+    };
+
+    item.addEventListener('click', dismiss);
+    setTimeout(dismiss, duration);
   }
 
   return {
